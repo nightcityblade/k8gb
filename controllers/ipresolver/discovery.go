@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/k8gb-io/k8gb/api/v1beta1io"
+
 	"github.com/k8gb-io/k8gb/controllers/utils"
 
 	"github.com/miekg/dns"
@@ -53,12 +55,12 @@ type ClusterNSNames map[string]string
 //	gslb-ns-us-cloud.example.com. -> us
 //
 // Function discovers all nameservers including local and external
-func DiscoverNameServers(edge *utils.DNSServer, zone string) (ClusterNSNames, error) {
+func DiscoverNameServers(edge *utils.DNSServer, zone *v1beta1io.ZoneDelegation) (ClusterNSNames, error) {
 	const prefix = "gslb-ns-"
 	tags := make(map[string]string)
 
 	m := new(dns.Msg)
-	m.SetQuestion(zone+".", dns.TypeNS)
+	m.SetQuestion(zone.Spec.LoadBalancedZone+".", dns.TypeNS)
 	m.RecursionDesired = false // Equivalent to dig +norec
 
 	c := new(dns.Client)
@@ -85,8 +87,7 @@ func DiscoverNameServers(edge *utils.DNSServer, zone string) (ClusterNSNames, er
 		if len(parts) != 2 {
 			continue
 		}
-
-		tag := strings.Split(parts[1], "-")[0]
+		tag := strings.ReplaceAll(parts[1], zone.NsSuffix(), "")
 		clusterNSName := strings.TrimSuffix(ns.Ns, ".")
 		tags[clusterNSName] = tag
 	}

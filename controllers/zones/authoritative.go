@@ -94,7 +94,7 @@ func (z *ZoneDelegationImpl) ResolveAuthoritativeServersFromZoneDelegations(ctx 
 	for _, dnsServer := range zone.Status.DNSServers {
 		geotag, found := geoTags[dnsServer.Name]
 		if !found {
-			return nil, fmt.Errorf("ZoneDelegation for %s not found geotag for NS %s", host, dnsServer.Name)
+			return nil, fmt.Errorf("ZoneDelegation for %s not found geotag for NS %s, geotags: %v", host, dnsServer.Name, geoTags)
 		}
 		isLocal := geotag == z.config.ClusterGeoTag
 		authoritativeServers[dnsServer.Name] = AuthoritativeServer{IP: dnsServer.Address, GeoTag: geotag, IsLocal: isLocal}
